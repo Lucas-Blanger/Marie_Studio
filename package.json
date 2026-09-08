@@ -1,0 +1,76 @@
+{
+  "name": "marie-assembly",
+  "displayName": "MARIE Assembly",
+  "description": "Syntax highlighting e montador integrado para a linguagem Assembly do MARIE",
+  "version": "0.0.1",
+  "publisher": "seu-usuario-aqui",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "onLanguage:marie"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "marie",
+        "aliases": [
+          "MARIE Assembly",
+          "marie"
+        ],
+        "extensions": [
+          ".mas",
+          ".marie"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "marie",
+        "scopeName": "source.marie",
+        "path": "./syntaxes/marie.tmLanguage.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "marie.assemble",
+        "title": "MARIE: Montar (Assemble)",
+        "icon": "$(play)"
+      },
+      {
+        "command": "marie.run",
+        "title": "MARIE: Executar",
+        "icon": "$(debug-start)"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "when": "resourceLangId == marie",
+          "command": "marie.assemble",
+          "group": "navigation"
+        },
+        {
+          "when": "resourceLangId == marie",
+          "command": "marie.run",
+          "group": "navigation@1"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "18.x",
+    "typescript": "^5.3.0"
+  }
+}
