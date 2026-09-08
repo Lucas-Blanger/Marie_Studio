@@ -1,0 +1,88 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "MARIE Assembly",
+  "scopeName": "source.marie",
+  "fileTypes": ["mar", "marie", "asm"],
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#labels" },
+    { "include": "#instructions" },
+    { "include": "#directives" },
+    { "include": "#registers" },
+    { "include": "#numbers" },
+    { "include": "#punctuation" },
+    { "include": "#identifiers" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.slash.marie",
+          "match": "/.*$"
+        }
+      ]
+    },
+    "labels": {
+      "patterns": [
+        {
+          "name": "entity.name.function.label.marie",
+          "match": "^\\s*([A-Za-z_][A-Za-z0-9_]*)\\s*(?=,)"
+        }
+      ]
+    },
+    "instructions": {
+      "patterns": [
+        {
+          "name": "keyword.control.instruction.marie",
+          "match": "\\b(?i:(LOADI|STOREI|LOAD|STORE|ADDI|ADD|SUBT|INPUT|OUTPUT|HALT|SKIPCOND|JUMPI|JUMP|CLEAR|JNS))\\b"
+        }
+      ]
+    },
+    "directives": {
+      "patterns": [
+        {
+          "name": "storage.type.directive.marie",
+          "match": "\\b(?i:(ORG|HEX|DEC|END))\\b"
+        }
+      ]
+    },
+    "registers": {
+      "patterns": [
+        {
+          "name": "variable.language.register.marie",
+          "match": "\\b(?i:(AC|MAR|MBR|PC|IR|InREG|OutREG))\\b"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.hex.marie",
+          "comment": "Só é hex se tiver pelo menos uma letra A-F, evitando confundir com decimais puros",
+          "match": "\\b(?=[0-9A-Fa-f]*[A-Fa-f])[0-9A-Fa-f]{1,4}\\b"
+        },
+        {
+          "name": "constant.numeric.decimal.marie",
+          "match": "\\b-?[0-9]+\\b"
+        }
+      ]
+    },
+    "punctuation": {
+      "patterns": [
+        {
+          "name": "punctuation.separator.comma.marie",
+          "match": ","
+        }
+      ]
+    },
+    "identifiers": {
+      "patterns": [
+        {
+          "name": "variable.other.readwrite.marie",
+          "comment": "Nomes usados como operandos, ex: o 'Loop' em 'Jump Loop'",
+          "match": "\\b[A-Za-z_][A-Za-z0-9_]*\\b"
+        }
+      ]
+    }
+  }
+}
