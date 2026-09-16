@@ -1,0 +1,9 @@
+// Programa exemplo: soma dois números e mostra o resultado
+        LOAD    NumA
+        ADD     NumB
+        STORE   Result
+        OUTPUT
+        HALT
+NumA,   DEC     5
+NumB,   DEC     10
+Result, DEC     0

@@ -1,0 +1,10 @@
+// Contagem regressiva de 5 até 0
+        LOAD     Count
+Loop,   OUTPUT
+        SUBT     One
+        STORE    Count
+        SKIPCOND 400     // pula a próxima linha se AC = 0
+        JUMP     Loop
+        HALT
+Count,  DEC      5
+One,    DEC      1
