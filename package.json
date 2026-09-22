@@ -4,6 +4,7 @@
   "description": "Syntax highlighting e montador integrado para a linguagem Assembly do MARIE",
   "version": "0.0.1",
   "publisher": "seu-usuario-aqui",
+  "icon": "images/icon.png",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -26,7 +27,11 @@
           ".mas",
           ".marie"
         ],
-        "configuration": "./language-configuration.json"
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./images/icon.png",
+          "dark": "./images/icon.png"
+        }
       }
     ],
     "grammars": [
@@ -46,6 +51,11 @@
         "command": "marie.run",
         "title": "MARIE: Executar",
         "icon": "$(debug-start)"
+      },
+      {
+        "command": "marie.openSimulator",
+        "title": "MARIE: Abrir Simulador Visual",
+        "icon": "$(dashboard)"
       }
     ],
     "menus": {
@@ -59,6 +69,11 @@
           "when": "resourceLangId == marie",
           "command": "marie.run",
           "group": "navigation@1"
+        },
+        {
+          "when": "resourceLangId == marie",
+          "command": "marie.openSimulator",
+          "group": "navigation@2"
         }
       ]
     }
