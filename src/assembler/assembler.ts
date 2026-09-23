@@ -1,10 +1,35 @@
 import { OPCODES, NO_OPERAND_INSTRUCTIONS } from "./instructions";
 import { parseLine, ParsedLine } from "./parser";
 
+export interface AssemblyError {
+  lineNumber: number;
+  message: string;
+  startColumn?: number;
+  endColumn?: number;
+}
+
+export interface SymbolInfo {
+  name: string;
+  address: number;
+  lineNumber: number;
+  startColumn?: number;
+  endColumn?: number;
+}
+
+export interface AddressLineMap {
+  address: number;
+  lineNumber: number;
+  raw: string;
+}
+
 export interface AssembleResult {
   hex: string[];
   errors: string[];
+  structuredErrors: AssemblyError[];
   symbolTable: Record<string, number>;
+  symbols: SymbolInfo[];
+  addressToLineMap: AddressLineMap[];
+  parsedLines: ParsedLine[];
 }
 
 /**
@@ -14,8 +39,26 @@ export interface AssembleResult {
 export function assemble(source: string): AssembleResult {
   const rawLines = source.split("\n");
   const errors: string[] = [];
+  const structuredErrors: AssemblyError[] = [];
   const symbolTable: Record<string, number> = {};
+  const symbols: SymbolInfo[] = [];
+  const addressToLineMap: AddressLineMap[] = [];
   const parsedLines: ParsedLine[] = [];
+
+  function addError(
+    lineNumber: number,
+    message: string,
+    startColumn?: number,
+    endColumn?: number,
+  ) {
+    errors.push(`Linha ${lineNumber}: ${message}`);
+    structuredErrors.push({
+      lineNumber,
+      message,
+      startColumn,
+      endColumn,
+    });
+  }
 
   //  1ª passagem: monta a tabela de símbolos
   let address = 0;
@@ -24,19 +67,43 @@ export function assemble(source: string): AssembleResult {
 
     // Linha vazia ou só comentário: ignora
     if (!parsed.instruction) {
+      if (parsed.label) {
+        addError(
+          parsed.lineNumber,
+          `Label "${parsed.label}" sem instrução associada.`,
+          parsed.labelRange?.startColumn,
+          parsed.labelRange?.endColumn,
+        );
+      }
       continue;
     }
 
     if (parsed.label) {
       if (symbolTable[parsed.label] !== undefined) {
-        errors.push(
-          `Linha ${parsed.lineNumber}: label "${parsed.label}" já foi definida antes.`,
+        addError(
+          parsed.lineNumber,
+          `label "${parsed.label}" já foi definida antes.`,
+          parsed.labelRange?.startColumn,
+          parsed.labelRange?.endColumn,
         );
+      } else {
+        symbolTable[parsed.label] = address;
+        symbols.push({
+          name: parsed.label,
+          address,
+          lineNumber: parsed.lineNumber,
+          startColumn: parsed.labelRange?.startColumn,
+          endColumn: parsed.labelRange?.endColumn,
+        });
       }
-      symbolTable[parsed.label] = address;
     }
 
     parsedLines.push(parsed);
+    addressToLineMap.push({
+      address,
+      lineNumber: parsed.lineNumber,
+      raw: parsed.raw,
+    });
     address++;
   }
 
@@ -49,20 +116,42 @@ export function assemble(source: string): AssembleResult {
     let word: string;
 
     if (instruction === "DEC") {
-      const value = parseInt(parsed.operand ?? "0", 10);
+      const value = parseInt(parsed.operand ?? "", 10);
       if (isNaN(value)) {
-        errors.push(
-          `Linha ${parsed.lineNumber}: valor inválido em DEC ("${parsed.operand}").`,
+        addError(
+          parsed.lineNumber,
+          `valor inválido em DEC ("${parsed.operand ?? ""}").`,
+          parsed.operandRange?.startColumn,
+          parsed.operandRange?.endColumn,
+        );
+        word = "????";
+      } else if (value < -32768 || value > 32767) {
+        addError(
+          parsed.lineNumber,
+          `valor fora do limite de 16 bits em DEC (${value}).`,
+          parsed.operandRange?.startColumn,
+          parsed.operandRange?.endColumn,
         );
         word = "????";
       } else {
         word = toHexWord(value);
       }
     } else if (instruction === "HEX") {
-      const value = parseInt(parsed.operand ?? "0", 16);
+      const value = parseInt(parsed.operand ?? "", 16);
       if (isNaN(value)) {
-        errors.push(
-          `Linha ${parsed.lineNumber}: valor inválido em HEX ("${parsed.operand}").`,
+        addError(
+          parsed.lineNumber,
+          `valor hexadecimal inválido em HEX ("${parsed.operand ?? ""}").`,
+          parsed.operandRange?.startColumn,
+          parsed.operandRange?.endColumn,
+        );
+        word = "????";
+      } else if (value < 0 || value > 0xffff) {
+        addError(
+          parsed.lineNumber,
+          `valor fora do limite de 16 bits em HEX (${parsed.operand}).`,
+          parsed.operandRange?.startColumn,
+          parsed.operandRange?.endColumn,
         );
         word = "????";
       } else {
@@ -73,25 +162,37 @@ export function assemble(source: string): AssembleResult {
       let operandBits = "000";
 
       if (instruction === "SKIPCOND") {
-        // SKIPCOND usa o próprio valor (000, 400 ou 800) como operando, não um endereço
-        const value = parseInt(parsed.operand ?? "0", 16);
-        if (isNaN(value)) {
-          errors.push(
-            `Linha ${parsed.lineNumber}: condição inválida em SKIPCOND ("${parsed.operand}").`,
+        const valueStr = parsed.operand ?? "0";
+        const value = parseInt(valueStr, 16);
+        if (
+          isNaN(value) ||
+          (value !== 0x000 && value !== 0x400 && value !== 0x800)
+        ) {
+          addError(
+            parsed.lineNumber,
+            `condição inválida em SKIPCOND ("${parsed.operand}"). Use 000 (AC < 0), 400 (AC = 0) ou 800 (AC > 0).`,
+            parsed.operandRange?.startColumn,
+            parsed.operandRange?.endColumn,
           );
         } else {
           operandBits = value.toString(16).toUpperCase().padStart(3, "0");
         }
       } else if (!NO_OPERAND_INSTRUCTIONS.includes(instruction)) {
         if (parsed.operand === undefined) {
-          errors.push(
-            `Linha ${parsed.lineNumber}: instrução "${instruction}" requer um operando.`,
+          addError(
+            parsed.lineNumber,
+            `instrução "${instruction}" requer um operando.`,
+            parsed.instructionRange?.startColumn,
+            parsed.instructionRange?.endColumn,
           );
         } else {
           const target = symbolTable[parsed.operand];
           if (target === undefined) {
-            errors.push(
-              `Linha ${parsed.lineNumber}: label "${parsed.operand}" não foi encontrada.`,
+            addError(
+              parsed.lineNumber,
+              `label "${parsed.operand}" não foi encontrada.`,
+              parsed.operandRange?.startColumn,
+              parsed.operandRange?.endColumn,
             );
           } else {
             operandBits = target.toString(16).toUpperCase().padStart(3, "0");
@@ -101,8 +202,11 @@ export function assemble(source: string): AssembleResult {
 
       word = opcode + operandBits;
     } else {
-      errors.push(
-        `Linha ${parsed.lineNumber}: instrução desconhecida "${instruction}".`,
+      addError(
+        parsed.lineNumber,
+        `instrução desconhecida "${instruction}".`,
+        parsed.instructionRange?.startColumn,
+        parsed.instructionRange?.endColumn,
       );
       word = "????";
     }
@@ -112,7 +216,15 @@ export function assemble(source: string): AssembleResult {
     address++;
   }
 
-  return { hex, errors, symbolTable };
+  return {
+    hex,
+    errors,
+    structuredErrors,
+    symbolTable,
+    symbols,
+    addressToLineMap,
+    parsedLines,
+  };
 }
 
 // Converte um número (positivo ou negativo) em palavra hex de 16 bits, complemento de dois.
@@ -120,3 +232,4 @@ function toHexWord(value: number): string {
   const unsigned = value < 0 ? 0x10000 + value : value;
   return unsigned.toString(16).toUpperCase().padStart(4, "0");
 }
+
