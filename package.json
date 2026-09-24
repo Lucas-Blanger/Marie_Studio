@@ -2,7 +2,7 @@
   "name": "marie-assembly",
   "displayName": "MARIE Assembly",
   "description": "Syntax highlighting e montador integrado para a linguagem Assembly do MARIE",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "publisher": "seu-usuario-aqui",
   "icon": "images/icon.png",
   "engines": {
@@ -10,9 +10,6 @@
   },
   "categories": [
     "Programming Languages"
-  ],
-  "activationEvents": [
-    "onLanguage:marie"
   ],
   "main": "./out/extension.js",
   "contributes": {
