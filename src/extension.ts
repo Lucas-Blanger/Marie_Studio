@@ -1,10 +1,46 @@
 import * as vscode from "vscode";
 import { assemble } from "./assembler/assembler";
 import { runProgram } from "./assembler/emulator";
+import { registerDiagnostics } from "./providers/diagnostics";
+import { MarieHoverProvider } from "./providers/hoverProvider";
+import { MarieCompletionProvider } from "./providers/completionProvider";
+import { MarieDefinitionProvider } from "./providers/definitionProvider";
+import { MarieSimulatorPanel } from "./simulator/simulatorPanel";
 
 export function activate(context: vscode.ExtensionContext) {
   const outputChannel = vscode.window.createOutputChannel("MARIE Assembler");
 
+  // 1. Registra diagnósticos em tempo real (squiggles vermelhos)
+  registerDiagnostics(context);
+
+  // 2. Registra providers de linguagem (IntelliSense)
+  context.subscriptions.push(
+    vscode.languages.registerHoverProvider("marie", new MarieHoverProvider()),
+  );
+
+  context.subscriptions.push(
+    vscode.languages.registerCompletionItemProvider(
+      "marie",
+      new MarieCompletionProvider(),
+      " ",
+    ),
+  );
+
+  context.subscriptions.push(
+    vscode.languages.registerDefinitionProvider(
+      "marie",
+      new MarieDefinitionProvider(),
+    ),
+  );
+
+  // 3. Registra comando do Simulador Visual em Webview
+  context.subscriptions.push(
+    vscode.commands.registerCommand("marie.openSimulator", () => {
+      MarieSimulatorPanel.createOrShow(context.extensionUri);
+    }),
+  );
+
+  // 4. Registra comando de Montar (Assemble)
   const disposable = vscode.commands.registerCommand("marie.assemble", () => {
     const editor = vscode.window.activeTextEditor;
 
@@ -41,6 +77,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(disposable);
 
+  // 5. Registra comando de Executar no Output
   const runDisposable = vscode.commands.registerCommand(
     "marie.run",
     async () => {
