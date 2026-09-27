@@ -57,6 +57,27 @@ export function getHtmlForWebview(): string {
     button.btn-primary:hover { background: #2ea043; }
     button.btn-danger { background: #da3633; color: #fff; border-color: #f85149; }
     
+    .view-tabs {
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 8px;
+    }
+    .tab-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: #8b949e;
+      padding: 6px 16px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+    }
+    .tab-btn.active {
+      background: var(--card-bg);
+      border-color: var(--card-border);
+      color: var(--accent);
+      font-weight: bold;
+    }
+
     .grid-container {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
@@ -73,6 +94,23 @@ export function getHtmlForWebview(): string {
     .reg-title { font-size: 0.75rem; color: #8b949e; font-weight: 600; text-transform: uppercase; margin-bottom: 4px; }
     .reg-value { font-family: monospace; font-size: 1.2rem; font-weight: bold; color: #f0f6fc; }
     .reg-sub { font-size: 0.75rem; color: #8b949e; }
+
+    /* Estilos do Data Path SVG */
+    .datapath-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow-x: auto;
+    }
+    .datapath-svg {
+      width: 100%;
+      max-width: 950px;
+      height: auto;
+    }
 
     .main-section { display: grid; grid-template-columns: 1fr 280px; gap: 16px; }
     @media (max-width: 768px) { .main-section { grid-template-columns: 1fr; } }
@@ -187,6 +225,12 @@ export function getHtmlForWebview(): string {
     </div>
   </div>
 
+  <div class="view-tabs">
+    <button class="tab-btn active" id="tabDatapath">Caminho de Dados (Data Path)</button>
+    <button class="tab-btn" id="tabMemory">Grade de Memória RAM</button>
+    <button class="tab-btn" id="tabSplit">Visão Combinada</button>
+  </div>
+
   <div class="grid-container">
     <div class="reg-card highlight">
       <div class="reg-title">AC (Acumulador)</div>
@@ -220,7 +264,152 @@ export function getHtmlForWebview(): string {
     </div>
   </div>
 
-  <div class="main-section">
+  <!-- DIAGRAMA DATA PATH SVG -->
+  <div class="datapath-card" id="datapathSection">
+    <svg class="datapath-svg" viewBox="0 0 950 420" xmlns="http://www.w3.org/2000/svg">
+      <!-- Definições de marcadores de seta -->
+      <defs>
+        <marker id="arrow-blue" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#58a6ff" />
+        </marker>
+        <marker id="arrow-green" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#2ea043" />
+        </marker>
+        <marker id="arrow-red" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#f85149" />
+        </marker>
+      </defs>
+
+      <!-- 1. UNIDADE DE CONTROLE (Esquerda) -->
+      <rect x="30" y="20" width="120" height="370" rx="8" fill="#161b22" stroke="#30363d" stroke-width="2"/>
+      <text x="90" y="45" fill="#8b949e" font-size="14" font-weight="bold" text-anchor="middle">Control unit</text>
+      
+      <!-- Sinais de Controle -->
+      <text x="140" y="70" fill="#58a6ff" font-size="12" text-anchor="end">Read</text>
+      <text x="45" y="120" fill="#8b949e" font-size="11">Step</text>
+      
+      <!-- Pontos de Passos (Step dots) -->
+      <circle cx="50" cy="140" r="4" fill="#58a6ff"/>
+      <circle cx="50" cy="160" r="4" fill="#30363d"/>
+      <circle cx="50" cy="180" r="4" fill="#30363d"/>
+      <circle cx="50" cy="200" r="4" fill="#30363d"/>
+      <circle cx="50" cy="220" r="4" fill="#30363d"/>
+      <circle cx="50" cy="240" r="4" fill="#30363d"/>
+      <circle cx="50" cy="260" r="4" fill="#30363d"/>
+      <circle cx="50" cy="280" r="4" fill="#30363d"/>
+
+      <!-- Condições da ULA (Entradas na Unidade de Controle) -->
+      <text x="140" y="305" fill="#8b949e" font-size="11" text-anchor="end" id="svg-text-acneg">AC &lt; 0</text>
+      <text x="140" y="325" fill="#8b949e" font-size="11" text-anchor="end" id="svg-text-aczero">AC = 0</text>
+
+      <text x="140" y="365" fill="#f85149" font-size="12" text-anchor="end">Write</text>
+
+      <!-- 2. MEMÓRIA PRINCIPAL (Direita) -->
+      <rect x="800" y="20" width="120" height="370" rx="8" fill="#161b22" stroke="#30363d" stroke-width="2"/>
+      <text x="860" y="45" fill="#8b949e" font-size="14" font-weight="bold" text-anchor="middle">Main memory</text>
+      <text x="860" y="170" fill="#8b949e" font-size="13" text-anchor="middle">M[MAR]</text>
+      <text x="860" y="200" fill="#f0f6fc" font-size="20" font-weight="bold" font-family="monospace" text-anchor="middle" id="svg-val-mmar">0000</text>
+
+      <!-- 3. BARRAMENTOS PRINCIPAIS -->
+      <!-- Read Bus (Azul - Superior) -->
+      <line x1="150" y1="65" x2="800" y2="65" stroke="#58a6ff" stroke-width="2" marker-end="url(#arrow-blue)"/>
+
+      <!-- Data Bus (Verde - Inferior Espesso) -->
+      <path d="M 180 340 L 800 340" stroke="#2ea043" stroke-width="6" fill="none"/>
+
+      <!-- Write Bus (Vermelho - Inferior) -->
+      <line x1="150" y1="370" x2="800" y2="370" stroke="#f85149" stroke-width="2" marker-end="url(#arrow-red)"/>
+
+      <!-- 4. CAIXAS DOS REGISTRADORES (Centro) -->
+      <!-- IR -->
+      <g id="svg-box-ir">
+        <rect x="170" y="100" width="75" height="50" rx="6" fill="#0d1117" stroke="#30363d" stroke-width="2"/>
+        <text x="207" y="118" fill="#8b949e" font-size="11" text-anchor="middle">IR</text>
+        <text x="207" y="138" fill="#f0f6fc" font-size="14" font-family="monospace" font-weight="bold" text-anchor="middle" id="svg-val-ir">0000</text>
+        <line x1="207" y1="65" x2="207" y2="100" stroke="#58a6ff" stroke-dasharray="2 2" stroke-width="1.5"/>
+        <line x1="207" y1="150" x2="207" y2="340" stroke="#2ea043" stroke-width="4"/>
+      </g>
+
+      <!-- OUT -->
+      <g id="svg-box-out">
+        <rect x="260" y="100" width="75" height="50" rx="6" fill="#0d1117" stroke="#30363d" stroke-width="2"/>
+        <text x="297" y="118" fill="#8b949e" font-size="11" text-anchor="middle">OUT</text>
+        <text x="297" y="138" fill="#f0f6fc" font-size="14" font-family="monospace" font-weight="bold" text-anchor="middle" id="svg-val-out">0000</text>
+        <line x1="297" y1="65" x2="297" y2="100" stroke="#58a6ff" stroke-dasharray="2 2" stroke-width="1.5"/>
+        <line x1="297" y1="150" x2="297" y2="340" stroke="#2ea043" stroke-width="4"/>
+      </g>
+
+      <!-- IN -->
+      <g id="svg-box-in">
+        <rect x="350" y="100" width="75" height="50" rx="6" fill="#0d1117" stroke="#30363d" stroke-width="2"/>
+        <text x="387" y="118" fill="#8b949e" font-size="11" text-anchor="middle">IN</text>
+        <text x="387" y="138" fill="#f0f6fc" font-size="14" font-family="monospace" font-weight="bold" text-anchor="middle" id="svg-val-in">0000</text>
+        <line x1="387" y1="65" x2="387" y2="100" stroke="#58a6ff" stroke-dasharray="2 2" stroke-width="1.5"/>
+        <line x1="387" y1="150" x2="387" y2="340" stroke="#2ea043" stroke-width="4"/>
+      </g>
+
+      <!-- AC -->
+      <g id="svg-box-ac">
+        <rect x="440" y="100" width="75" height="50" rx="6" fill="#0d1117" stroke="#30363d" stroke-width="2"/>
+        <text x="477" y="118" fill="#58a6ff" font-size="11" font-weight="bold" text-anchor="middle">AC</text>
+        <text x="477" y="138" fill="#f0f6fc" font-size="14" font-family="monospace" font-weight="bold" text-anchor="middle" id="svg-val-ac">0000</text>
+        <line x1="477" y1="65" x2="477" y2="100" stroke="#58a6ff" stroke-dasharray="2 2" stroke-width="1.5"/>
+        <line x1="477" y1="150" x2="477" y2="340" stroke="#2ea043" stroke-width="4"/>
+      </g>
+
+      <!-- MBR -->
+      <g id="svg-box-mbr">
+        <rect x="530" y="100" width="75" height="50" rx="6" fill="#0d1117" stroke="#f85149" stroke-width="2"/>
+        <text x="567" y="118" fill="#f85149" font-size="11" font-weight="bold" text-anchor="middle">MBR</text>
+        <text x="567" y="138" fill="#f0f6fc" font-size="14" font-family="monospace" font-weight="bold" text-anchor="middle" id="svg-val-mbr">0000</text>
+        <line x1="567" y1="65" x2="567" y2="100" stroke="#58a6ff" stroke-dasharray="2 2" stroke-width="1.5"/>
+        <!-- MBR to Data Bus -->
+        <line x1="567" y1="150" x2="567" y2="340" stroke="#2ea043" stroke-width="4" stroke-dasharray="4 2"/>
+        <!-- MBR Write Line -->
+        <line x1="595" y1="150" x2="595" y2="370" stroke="#f85149" stroke-width="2"/>
+      </g>
+
+      <!-- PC -->
+      <g id="svg-box-pc">
+        <rect x="620" y="100" width="75" height="50" rx="6" fill="#0d1117" stroke="#30363d" stroke-width="2"/>
+        <text x="657" y="118" fill="#8b949e" font-size="11" text-anchor="middle">PC</text>
+        <text x="657" y="138" fill="#f0f6fc" font-size="14" font-family="monospace" font-weight="bold" text-anchor="middle" id="svg-val-pc">000</text>
+        <line x1="657" y1="65" x2="657" y2="100" stroke="#58a6ff" stroke-dasharray="2 2" stroke-width="1.5"/>
+        <line x1="657" y1="150" x2="657" y2="340" stroke="#2ea043" stroke-width="4"/>
+      </g>
+
+      <!-- MAR -->
+      <g id="svg-box-mar">
+        <rect x="710" y="100" width="75" height="50" rx="6" fill="#0d1117" stroke="#30363d" stroke-width="2"/>
+        <text x="747" y="118" fill="#8b949e" font-size="11" text-anchor="middle">MAR</text>
+        <text x="747" y="138" fill="#f0f6fc" font-size="14" font-family="monospace" font-weight="bold" text-anchor="middle" id="svg-val-mar">000</text>
+        <line x1="747" y1="65" x2="747" y2="100" stroke="#58a6ff" stroke-dasharray="2 2" stroke-width="1.5"/>
+        <line x1="747" y1="150" x2="747" y2="340" stroke="#2ea043" stroke-width="4"/>
+        <!-- MAR output to Main Memory address port -->
+        <line x1="785" y1="125" x2="800" y2="125" stroke="#2ea043" stroke-width="2" marker-end="url(#arrow-green)"/>
+      </g>
+
+      <!-- 5. ULA (ALU Trapezóide) -->
+      <g id="svg-box-alu">
+        <polygon points="485,210 555,210 535,255 505,255" fill="#161b22" stroke="#58a6ff" stroke-width="2"/>
+        <text x="520" y="235" fill="#58a6ff" font-size="11" font-weight="bold" text-anchor="middle">ALU</text>
+        <text x="500" y="222" fill="#8b949e" font-size="9">+</text>
+        <text x="540" y="222" fill="#8b949e" font-size="9">-</text>
+
+        <!-- Linha AC -> ULA -->
+        <line x1="490" y1="150" x2="490" y2="210" stroke="#2ea043" stroke-width="2" marker-end="url(#arrow-green)"/>
+        <!-- Linha MBR -> ULA -->
+        <line x1="550" y1="150" x2="550" y2="210" stroke="#2ea043" stroke-width="2" marker-end="url(#arrow-green)"/>
+
+        <!-- Linhas de Condição ULA -> Control Unit -->
+        <path d="M 505 245 L 150 245" stroke="#8b949e" stroke-width="1.5" stroke-dasharray="3 3"/>
+        <path d="M 505 250 L 150 250" stroke="#8b949e" stroke-width="1.5" stroke-dasharray="3 3"/>
+      </g>
+
+    </svg>
+  </div>
+
+  <div class="main-section" id="memorySection">
     <div class="memory-box">
       <div class="memory-header">
         <h4 style="margin:0; color:#58a6ff;">Memória RAM (4096 Palavras)</h4>
@@ -232,6 +421,15 @@ export function getHtmlForWebview(): string {
     </div>
 
     <div class="side-box">
+      <div class="panel-card" id="inputPanelCard">
+        <h4>Entrada de Dados (INPUT)</h4>
+        <div style="display: flex; gap: 8px;">
+          <input type="number" id="panelInputNumber" placeholder="Ex: 42" style="flex:1;">
+          <button id="btnSubmitPanelInput" class="btn-primary">Enviar</button>
+        </div>
+        <div style="font-size:0.75rem; color:#8b949e;" id="inputNotice">Digite um número inteiro e clique em Enviar.</div>
+      </div>
+
       <div class="panel-card">
         <h4>Status de Execução</h4>
         <div>Status: <span id="statusBadge" class="status-badge status-ready">PRONTO</span></div>
@@ -283,6 +481,50 @@ export function getHtmlForWebview(): string {
     const speedSlider = document.getElementById('speedSlider');
     const speedVal = document.getElementById('speedVal');
 
+    // SVG Text Elements
+    const svgValIR = document.getElementById('svg-val-ir');
+    const svgValOUT = document.getElementById('svg-val-out');
+    const svgValIN = document.getElementById('svg-val-in');
+    const svgValAC = document.getElementById('svg-val-ac');
+    const svgValMBR = document.getElementById('svg-val-mbr');
+    const svgValPC = document.getElementById('svg-val-pc');
+    const svgValMAR = document.getElementById('svg-val-mar');
+    const svgValMMAR = document.getElementById('svg-val-mmar');
+    const svgTextAcNeg = document.getElementById('svg-text-acneg');
+    const svgTextAcZero = document.getElementById('svg-text-aczero');
+
+    // Abas de visualização
+    const tabDatapath = document.getElementById('tabDatapath');
+    const tabMemory = document.getElementById('tabMemory');
+    const tabSplit = document.getElementById('tabSplit');
+
+    const datapathSection = document.getElementById('datapathSection');
+    const memorySection = document.getElementById('memorySection');
+
+    tabDatapath.addEventListener('click', () => {
+      tabDatapath.className = 'tab-btn active';
+      tabMemory.className = 'tab-btn';
+      tabSplit.className = 'tab-btn';
+      datapathSection.style.display = 'flex';
+      memorySection.style.display = 'none';
+    });
+
+    tabMemory.addEventListener('click', () => {
+      tabDatapath.className = 'tab-btn';
+      tabMemory.className = 'tab-btn active';
+      tabSplit.className = 'tab-btn';
+      datapathSection.style.display = 'none';
+      memorySection.style.display = 'grid';
+    });
+
+    tabSplit.addEventListener('click', () => {
+      tabDatapath.className = 'tab-btn';
+      tabMemory.className = 'tab-btn';
+      tabSplit.className = 'tab-btn active';
+      datapathSection.style.display = 'flex';
+      memorySection.style.display = 'grid';
+    });
+
     speedSlider.addEventListener('input', (e) => {
       speedVal.innerText = e.target.value + 'ms';
     });
@@ -325,6 +567,24 @@ export function getHtmlForWebview(): string {
     document.getElementById('btnSubmitInput').addEventListener('click', submitInput);
     inputNumber.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') submitInput();
+    });
+
+    const panelInputNumber = document.getElementById('panelInputNumber');
+    const btnSubmitPanelInput = document.getElementById('btnSubmitPanelInput');
+    const inputPanelCard = document.getElementById('inputPanelCard');
+
+    function submitPanelInput() {
+      const val = panelInputNumber.value;
+      if (val !== '') {
+        inputModal.classList.remove('active');
+        vscode.postMessage({ command: 'inputProvided', value: val });
+        panelInputNumber.value = '';
+      }
+    }
+
+    btnSubmitPanelInput.addEventListener('click', submitPanelInput);
+    panelInputNumber.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') submitPanelInput();
     });
 
     function submitInput() {
@@ -375,6 +635,32 @@ export function getHtmlForWebview(): string {
         valOUT.innerText = s.outReg;
         valSteps.innerText = s.steps;
 
+        // Atualiza SVG Data Path
+        svgValIR.textContent = s.ir;
+        svgValOUT.textContent = s.outReg.toString(16).toUpperCase().padStart(4, '0');
+        svgValIN.textContent = s.inReg.toString(16).toUpperCase().padStart(4, '0');
+        svgValAC.textContent = s.acHex;
+        svgValMBR.textContent = s.mbr;
+        svgValPC.textContent = s.pc;
+        svgValMAR.textContent = s.mar;
+        svgValMMAR.textContent = s.mMarHex;
+
+        if (s.acIsNegative) {
+          svgTextAcNeg.setAttribute('fill', '#58a6ff');
+          svgTextAcNeg.setAttribute('font-weight', 'bold');
+        } else {
+          svgTextAcNeg.setAttribute('fill', '#8b949e');
+          svgTextAcNeg.setAttribute('font-weight', 'normal');
+        }
+
+        if (s.acIsZero) {
+          svgTextAcZero.setAttribute('fill', '#58a6ff');
+          svgTextAcZero.setAttribute('font-weight', 'bold');
+        } else {
+          svgTextAcZero.setAttribute('fill', '#8b949e');
+          svgTextAcZero.setAttribute('font-weight', 'normal');
+        }
+
         statusBadge.innerText = s.status.toUpperCase();
         statusBadge.className = 'status-badge status-' + s.status;
 
@@ -385,6 +671,16 @@ export function getHtmlForWebview(): string {
         if (s.status === 'waiting_input') {
           inputModal.classList.add('active');
           inputNumber.focus();
+          if (inputPanelCard) {
+            inputPanelCard.style.borderColor = '#bc8cff';
+            inputPanelCard.style.boxShadow = '0 0 10px rgba(188, 140, 255, 0.4)';
+          }
+          if (panelInputNumber) panelInputNumber.focus();
+        } else {
+          if (inputPanelCard) {
+            inputPanelCard.style.borderColor = '#30363d';
+            inputPanelCard.style.boxShadow = 'none';
+          }
         }
 
         if (s.output && s.output.length > 0) {
