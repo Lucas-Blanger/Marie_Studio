@@ -15,7 +15,9 @@ export interface SimulatorState {
   acHex: string;
   ir: string;
   mar: string;
+  marDec: number;
   mbr: string;
+  mMarHex: string;
   inReg: number;
   outReg: number;
   steps: number;
@@ -25,6 +27,8 @@ export interface SimulatorState {
   lastModified: number;
   lastAccessed: number;
   logMessage: string;
+  acIsZero: boolean;
+  acIsNegative: boolean;
 }
 
 export class SimulatorEngine {
@@ -213,6 +217,8 @@ export class SimulatorEngine {
       memArray.push(this._memory[i].toString(16).toUpperCase().padStart(4, "0"));
     }
 
+    const currentMMar = this._memory[this._mar & 0x0fff] || 0;
+
     return {
       pc: this._pc.toString(16).toUpperCase().padStart(3, "0"),
       pcDec: this._pc,
@@ -220,7 +226,9 @@ export class SimulatorEngine {
       acHex: this.toWord(this._ac).toString(16).toUpperCase().padStart(4, "0"),
       ir: this._ir.toString(16).toUpperCase().padStart(4, "0"),
       mar: this._mar.toString(16).toUpperCase().padStart(3, "0"),
+      marDec: this._mar,
       mbr: this._mbr.toString(16).toUpperCase().padStart(4, "0"),
+      mMarHex: currentMMar.toString(16).toUpperCase().padStart(4, "0"),
       inReg: this._inReg,
       outReg: this._outReg,
       steps: this._steps,
@@ -230,6 +238,8 @@ export class SimulatorEngine {
       lastModified: this._lastModifiedMemory,
       lastAccessed: this._lastAccessedMemory,
       logMessage: logMessage || "",
+      acIsZero: this._ac === 0,
+      acIsNegative: this._ac < 0,
     };
   }
 
