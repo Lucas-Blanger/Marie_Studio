@@ -1,0 +1,9 @@
+// Programa exemplo: sutrai dois números e mostra o resultado
+        LOAD    NumA
+        SUBT     NumB
+        STORE   Result
+        OUTPUT
+        HALT
+NumA,   DEC     10
+NumB,   DEC     5
+Result, DEC     0
