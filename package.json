@@ -1,9 +1,13 @@
 {
-  "name": "marie-assembly",
-  "displayName": "MARIE Assembly",
-  "description": "Syntax highlighting e montador integrado para a linguagem Assembly do MARIE",
-  "version": "0.1.0",
-  "publisher": "seu-usuario-aqui",
+  "name": "marie-studio",
+  "displayName": "MARIE-Studio",
+  "description": "Destaque de sintaxe e montador integrado para a linguagem Assembly do MARIE",
+  "version": "0.1.3",
+  "publisher": "marie-studio",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Lucas-Blanger/Marie_Studio.git"
+  },
   "icon": "images/icon.png",
   "engines": {
     "vscode": "^1.85.0"
@@ -17,7 +21,7 @@
       {
         "id": "marie",
         "aliases": [
-          "MARIE Assembly",
+          "MARIE Studio",
           "marie"
         ],
         "extensions": [
