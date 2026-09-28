@@ -1,6 +1,26 @@
 # MARIE Assembly — Extensão para VS Code
 
+> **Atividade Prática Final da Disciplina de Arquitetura de Computadores**  
+> **Projeto:** MARIE Studio — Extensão, Montador e Simulador Visual para VS Code
+
 Extensão para o VS Code voltada à linguagem Assembly da arquitetura **MARIE** (_Machine Architecture that is Really Intuitive and Easy_), a máquina didática usada no ensino de Organização e Arquitetura de Computadores.
+
+---
+
+## Equipe e Créditos
+
+Este projeto foi desenvolvido como a **Atividade Prática Final da Disciplina de Arquitetura de Computadores**.
+
+### Integrantes do Grupo
+
+- **Gabriel Camerini**
+- **Henrique Otfinoski**
+- **Lucas Blanger**
+- **Marcelo Chies**
+
+### Professor / Orientador
+
+- **Prof. Marcos A. Lucas**
 
 ---
 
@@ -19,6 +39,17 @@ Extensão para o VS Code voltada à linguagem Assembly da arquitetura **MARIE** 
   - **Entrada de Dados (INPUT):** formulário direto no painel com foco automático e envio por tecla `Enter`.
   - **Destaque no Editor:** sincronização da instrução em execução com destaque na linha correspondente do arquivo de código fonte.
 - **Ícone Personalizado:** ícone oficial para arquivos `.mas` e `.marie` no Explorer do VS Code.
+
+---
+
+## Documentação Técnica dos Módulos
+
+Para entender em detalhes o funcionamento interno de cada módulo do projeto, acesse os guias na pasta [`docs/`](docs/README.md):
+
+- [**Montador e Parser** (`docs/montador.md`)](docs/montador.md) — Explicação sobre a arquitetura de 2 passagens, tabela de símbolos e geração de código de máquina.
+- [**Emulador de Terminal** (`docs/emulador.md`)](docs/emulador.md) — Explicação sobre o ciclo Fetch-Decode-Execute em memória RAM virtual.
+- [**Simulador Visual e Data Path** (`docs/simulador.md`)](docs/simulador.md) — Explicação sobre o motor da CPU, o esquema SVG do Data Path estilo _Marie.js_ e comunicação Webview IPC.
+- [**Recursos de Linguagem e VS Code** (`docs/linguagem-vscode.md`)](docs/linguagem-vscode.md) — Explicação sobre diagnósticos em tempo real, Hover, Autocomplete, Go to Definition e Syntax Highlighting.
 
 ---
 
@@ -47,6 +78,12 @@ Marie_Studio/
 ├── language-configuration.json     # Regras de comentários e fechamento de parênteses
 ├── syntaxes/marie.tmLanguage.json  # Gramática de realce de cores (TextMate Regex)
 ├── images/                         # Logotipo e ícone oficial dos arquivos .mas
+├── docs/                           # Documentação detalhada dos módulos do sistema
+│   ├── README.md                   # Índice geral da documentação
+│   ├── montador.md                 # Arquitetura do Montador de 2 Passagens e Parser
+│   ├── emulador.md                 # Lógica de execução do Emulador de Terminal
+│   ├── simulador.md                # Simulador Visual Webview, Engine e SVG Data Path
+│   └── linguagem-vscode.md         # Diagnostics, IntelliSense e Syntax Highlighting
 ├── src/
 │   ├── extension.ts                # Ponto de entrada e registro de comandos/providers
 │   ├── assembler/
