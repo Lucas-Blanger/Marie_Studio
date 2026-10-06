@@ -1,0 +1,8 @@
+LOAD Num       
+ADD Um         
+STORE Num      
+Jump ROTULO_INEXISTENTE  / <-- ERRO SUBLINHADO: O rótulo 'ROTULO_INEXISTENTE'
+
+Halt           
+Num, DEC 10        
+Um,  DEC 1         
